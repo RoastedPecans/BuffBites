@@ -21,10 +21,12 @@ using json = nlohmann::json;
 struct order {
     string orderType;
     json orderData;
+    string orderLocation;
     vector<string> *sides;
 
     order() {
         orderType = "";
+        orderLocation = "Farrand Grab 'N Go";
         orderData = nullptr;
         sides = new vector<string>;
     }
@@ -46,8 +48,8 @@ public:
     std::vector<order> *getPastOrders();
     bool setCurrentOrder(order *currentOrder);
     order *getCurrentOrder();
-    bool makeSandwichOrder(string breadType, string meat, vector<string> toppings);
-    bool makeBurgerOrder(string bun, string cook, vector<string> toppings, bool special);
+    bool makeSandwichOrder(string breadType, string meat, vector<string> toppings, string location);
+    bool makeBurgerOrder(string bun, string cook, vector<string> toppings, bool special, string location);
     int sendOrder();
 };
 

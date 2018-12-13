@@ -6,37 +6,45 @@
 
 User::~User() = default;
 
+// Set the user account id (primary key id from DB)
 bool User::setAccountId(int accId) {
     this->accountId = accId;
     return true;
 };
 
+// Get account id of logged in user
 int User::getAccountId() {
     return this->accountId;
 }
 
+// Get past orders for user
 std::vector<order> *User::getPastOrders() {
     return this->pastOrders;
 }
 
+// Set the current order for the user (deprecated)
 bool User::setCurrentOrder(order *orderToSet) {
     this->currentOrder = orderToSet;
     return true;
 }
 
+// Get current order for user
 order *User::getCurrentOrder() {
     return this->currentOrder;
 }
 
+// Set the current order for the user
 bool User::setCurrentOrderId(int orderId) {
     this->currentOrderId = orderId;
     return true;
 }
 
+// Get the current order ID (not used)
 int User::getCurrentOrderId() {
     return currentOrderId;
 }
 
+// Create new account with cooresponding PKID from DB
 User::User(int accountIdToSet) {
     setAccountId(accountIdToSet);
     setCurrentOrderId(0);
@@ -44,7 +52,8 @@ User::User(int accountIdToSet) {
     this->pastOrders = new vector<order>;
 }
 
-bool User::makeSandwichOrder(string breadType, string meat, vector<string> toppings) {
+// Make sandwich order (not used as of right now)
+bool User::makeSandwichOrder(string breadType, string meat, vector<string> toppings, string location) {
     cout << "making sandwich order" << endl << endl;
     json sandwichJSON = nullptr;
     sandwichJSON["orderType"]["breadType"] = breadType;
@@ -62,19 +71,22 @@ bool User::makeSandwichOrder(string breadType, string meat, vector<string> toppi
 
     sandwichOrderToReturn->orderType = "sandwich";
     sandwichOrderToReturn->orderData = sandwichJSON;
+    sandwichOrderToReturn->orderLocation = location;
 
     currentOrder = sandwichOrderToReturn;
 
     return true;
 }
 
-bool User::makeBurgerOrder(string bun, string cook, vector<string> toppings, bool special) {
-    cout << "making burger order" << endl << endl;
+// Make burger order according to data passed in
+bool User::makeBurgerOrder(string bun, string cook, vector<string> toppings, bool special, string location) {
+    // Make JSON
     json burgerJSON = nullptr;
     burgerJSON["bunType"] = bun;
     burgerJSON["cookType"] = cook;
     burgerJSON["special"] = special;
 
+    // Add toppings
     if (!toppings.empty()) {
         int topping = 0;
         for (unsigned long i = 0; i < toppings.size(); i++) {
@@ -83,25 +95,28 @@ bool User::makeBurgerOrder(string bun, string cook, vector<string> toppings, boo
         }
     }
 
+    // Create new order
     order *burgerOrderToReturn = new order();
 
+    // Set attributes
     burgerOrderToReturn->orderType = "burger";
     burgerOrderToReturn->orderData = burgerJSON;
+    burgerOrderToReturn->orderLocation = location;
 
     currentOrder = burgerOrderToReturn;
 
     return true;
 }
 
+// Send the order to the webserver via POST request
 int User::sendOrder() {
     // Create JSON with the cooresponding data to include in POST request
     json orderPost;
     orderPost["orderData"] = getCurrentOrder()->orderData;
     orderPost["orderType"] = getCurrentOrder()->orderType;
+    orderPost["orderLocation"] = getCurrentOrder()->orderLocation;
     orderPost["id"] = getAccountId();
     orderPost["verification"] = "rtkVM8uOpxqZVYBop5zNs8X6WS6pppMBHgd1CqxDZFXwqoXkkzY0jZaa0wcI";
-
-    cout << orderPost.dump() << endl;
 
     // Create http_client and http_POST request
     http_client client("https://farrandorder.me/createOrder");
@@ -120,7 +135,6 @@ int User::sendOrder() {
     // If status code does not indicate success
     if (statusCode < 200 || statusCode >= 300) {
         cout << statusCode << endl;
-        cout << body.to_string() << endl;
         cout << "Problem sending order, please try again!" << endl;
         return -1;
     }
@@ -135,7 +149,7 @@ int User::sendOrder() {
         // Substring from the colon (:) to the end of the line to get the accountId
         int orderId = stoi(body.to_string().substr(leftIndex + searchKey.length()));
 
-
+        // Set the current order id to be accurate
         currentOrderId = orderId;
 
         return orderId;
