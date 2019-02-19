@@ -10,6 +10,9 @@
 #include <vector>
 #include "User.h"
 #include <stdio.h>
+#include <random>
+#include <cstdlib>
+#include <time.h>
 //#include "imgui.h"
 //#include <GLFW/glfw3.h>
 //#include "imgui_widgets.cpp"
@@ -125,6 +128,62 @@ int main(int argc, char* argv[])
     SSL_load_error_strings();
     ERR_load_BIO_strings();
     OpenSSL_add_all_algorithms();
+
+    bool createExampleData = true;
+
+    if (createExampleData) {
+        srand((unsigned)time(NULL));
+
+        // Log in user
+        User *user = loginPost("example@example.com", "exampleexample", "example");
+        //User *user = loginPost("coth8721@colorado.edu", "Testing123!", "University of Colorado Boulder");
+
+        // Make random order
+        string breadType;
+        int randomBread = rand() % 4;  // 4 options (0, 1, 2, 3)
+
+        if (randomBread == 0) breadType = "wheat";
+        if (randomBread == 1) breadType = "white";
+        if (randomBread == 2) breadType = "veggie";
+        if (randomBread == 3) breadType = "none";
+
+        srand((unsigned)time(NULL));
+        string cookType;
+        int randomCook = rand() % 5;
+        if (randomCook == 0) cookType = "rare";
+        if (randomCook == 1) cookType = "medium-rare";
+        if (randomCook == 2) cookType = "medium";
+        if (randomCook == 3) cookType = "medium-well";
+        if (randomCook == 4) cookType = "well";
+
+        // 25% chance of being special burger (1/4)
+        bool special = false;
+        srand((unsigned)time(NULL));
+        int randomSpecial = rand() % 4;
+        if (randomSpecial == 3) special = true;
+
+        vector<string> toppings;
+        srand((unsigned)time(NULL));
+        int randomNoToppings = rand() % 3;
+        // 33% chance of burger not having toppings
+        if (randomNoToppings != 2) {
+            int randomChoice1 = rand() % 10;
+            int randomChoice2 = rand() % 10;
+            int randomChoice3 = rand() % 10;
+            int randomChoice4 = rand() % 10;
+
+            // 80 % chance of lettuce (0-7 = lettuce, 8,9 = no lettuce)
+            if (randomChoice1 < 8) toppings.emplace_back("lettuce");
+            if (randomChoice2 < 6) toppings.emplace_back("tomato");
+            if (randomChoice3 < 7) toppings.emplace_back("onion");
+            if (randomChoice4 < 4) toppings.emplace_back("pickle");
+        }
+
+        user->makeBurgerOrder(breadType, cookType, toppings, special, "Farrand Grab 'n Go");
+        int orderId = user->sendOrder();
+        cout << "Order " << to_string(orderId) << " sent successfully! You can monitor its status online at https://farrandOrder.me/viewOrders" << endl;
+        return 0;
+    }
 
     // Variables for logging in/registering
     string name;
@@ -257,6 +316,6 @@ int main(int argc, char* argv[])
     delete user;
 
     //User *user = loginPost("coth8721@colorado.edu", "Testing123!", "University of Colorado Boulder");
-    //User *user = registerPost("Connor Thompson", "coth8721@colorado.edu", "Testing123!", 107554044, "University of Colorado Boulder");
+    //User *user = registerPost("Connor Thompson", "coth8721@colorado.edu", "Testing123!", 123456789, "University of Colorado Boulder");
     return 0;
 }
